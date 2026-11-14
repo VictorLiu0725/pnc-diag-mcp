@@ -1,108 +1,110 @@
 # pnc-diag-mcp (Open-Source Thin Edition)
 
-面向自动驾驶 **PNC（规划与控制）** 与 **LiDAR-SLAM** 离线录包的**开源基础接口、零反序列化体检与标准 Skill 工具包**，支持只读解析 `.mcap`、`.db3` / `.sqlite3` 与 ROS 1 `.bag`，**无需在本地安装 ROS 2**。
+A read-only, open-source foundation for inspecting offline **Planning and Control (PNC)** and **LiDAR-SLAM** recordings. It provides a multi-format bag reader, a timing health check that does not deserialize message payloads, and an Agent Skill interface. It supports `.mcap`, `.db3` / `.sqlite3`, and ROS 1 `.bag` files **without a local ROS 2 installation**.
 
 ---
 
-## 功能与开源边界说明
+## Features and open-source scope
 
-本开源版本聚焦**开源标准层与可复现数据基座**，核心定位是标准化录包读取、时序健康体检与 Agent Skill 接入接口。
+This edition provides standardized recording access, timing checks, and reproducible synthetic examples for Agent integration.
 
-### 本版本包含（已实现且可运行）
+### Included and working
 
-1. **离线多格式发现与零反序列化时序扫描（`src/pnc_diag/readers/`、`src/pnc_diag/inspector.py`）**
-   - 统一识别 `.mcap`、`.db3` / `.sqlite3`、ROS 1 `.bag` 与 ROS 2 目录（校验 `metadata.yaml` 相对路径安全）；
-   - 按存储原始顺序统计各话题消息数、时长、平均频率、周期中位数/P95、P95 抖动、断流间隙（`heuristic_large_gap`）、时间戳倒退（`monotonic_violations`）与零时间戳（`zero_timestamps`）；
-   - 基于有界前段采样统计话题是否包含 `header.stamp`、零 `header` 数以及中性观测值 `observed_header_minus_log_ms`（不作跨时钟同步假设）。
-2. **标准信号模型与声明式 YAML 映射（`src/pnc_diag/models/`、`configs/`）**
-   - 内置 Nav2（[configs/topic_map.nav2.yaml](configs/topic_map.nav2.yaml)）与 Autoware Universe（[configs/topic_map.autoware.yaml](configs/topic_map.autoware.yaml)）标准话题映射；
-   - 支持点路径/数组下标抽取（如 `pose.covariance[0]`）以及 `FLU`/`FRD`、`rad`/`deg` 转换，输出 `PoseSample`、`TwistSample`、`ImuSample`、`PathSample`、`ControlCmdSample`、`LaserScanSample`、`DiagnosticEvent`。
-3. **精简 CLI 与 stdio MCP Server（`src/pnc_diag/cli.py`、`src/pnc_diag/mcp_server.py`）**
-   - CLI 子命令：`pnc-diag inspect`、`pnc-diag preview`；
-   - stdio MCP 服务 `pnc-diag-mcp` 暴露 3 个工具：`ping`、`inspect_bag_summary`、`sample_mapped_signals`；
-   - 配套编排规范 [SKILL.md](.agents/skills/pnc-slam-diag/SKILL.md) 与 [references/fault_patterns.md](.agents/skills/pnc-slam-diag/references/fault_patterns.md)。
-4. **可复现合成示例套件（`fault_sim_kit/`）**
-   - 离线生成 1 个基线与 9 个合成故障/缺失/零时间戳示例录包（`data/golden/`）供工具联调与回归练习。
+1. **Offline multi-format discovery and timing scans without payload deserialization** (`src/pnc_diag/readers/`, `src/pnc_diag/inspector.py`)
+   - Detects `.mcap`, `.db3` / `.sqlite3`, ROS 1 `.bag`, and ROS 2 bag directories; validates relative paths in `metadata.yaml`.
+   - Audits each topic in its original storage order: message count, duration, mean rate, median and P95 period, P95 jitter, gaps (`heuristic_large_gap`), timestamp regressions (`monotonic_violations`), and zero timestamps (`zero_timestamps`).
+   - Uses bounded early-message sampling to check for `header.stamp`, count zero header stamps, and report the neutral `observed_header_minus_log_ms` observation. It does not assume cross-topic clock synchronization.
+2. **Standard signal models and declarative YAML mapping** (`src/pnc_diag/models/`, `configs/`)
+   - Includes standard mappings for Nav2 ([configs/topic_map.nav2.yaml](configs/topic_map.nav2.yaml)) and Autoware Universe ([configs/topic_map.autoware.yaml](configs/topic_map.autoware.yaml)).
+   - Extracts dot paths and array elements (for example, `pose.covariance[0]`), converts `FLU` / `FRD` frames and `rad` / `deg` units, and returns `PoseSample`, `TwistSample`, `ImuSample`, `PathSample`, `ControlCmdSample`, `LaserScanSample`, and `DiagnosticEvent` values.
+3. **Small CLI and stdio MCP server** (`src/pnc_diag/cli.py`, `src/pnc_diag/mcp_server.py`)
+   - CLI commands: `pnc-diag inspect` and `pnc-diag preview`.
+   - The `pnc-diag-mcp` stdio server exposes three tools: `ping`, `inspect_bag_summary`, and `sample_mapped_signals`.
+   - Includes the orchestration [SKILL.md](.agents/skills/pnc-slam-diag/SKILL.md) and [fault pattern reference](.agents/skills/pnc-slam-diag/references/fault_patterns.md).
+4. **Reproducible synthetic examples** (`fault_sim_kit/`)
+   - Generates one baseline recording and nine synthetic fault, missing-data, or zero-timestamp examples under `data/golden/` for integration and regression exercises.
 
-### 本版本不包含（保留在私有/商业内核）
+### Outside this edition's scope
 
-- 自动物理诊断算子（定位跳变 vs 轮速打滑判别、规划轨迹跳变/曲率/求解器检查、控制互相关延时与 FFT 画龙频谱）；
-- First-Domino 跨模块因果裁决引擎与 5 联诊断 PNG 绘图器；
-- 经领域标定的检测阈值规则库（`rules`）与企业 CI KPI 门禁参数（如 `--assert-kpi`）；
-- 客户专有 `.msg` / `.proto` 消息适配器。
+The following components remain in the private diagnostic core:
+
+- Automated physical diagnostic operators for localization jumps versus odometry slip, planning path jumps / curvature / solver checks, and control cross-correlation delay and FFT oscillation analysis.
+- The First-Domino cross-module causal arbitration engine and five-panel diagnostic PNG plotter.
+- Calibrated detection rules and enterprise CI KPI gates such as `--assert-kpi`.
+- Customer-specific `.msg` / `.proto` adapters.
 
 ---
 
-## 环境要求与安装
+## Requirements and installation
 
-- **Python**: `>= 3.10`（已在 Python `3.10.12` 与 `3.13.17` 洁净环境验证通过）
-- **包管理工具**: 推荐使用 [`uv`](https://docs.astral.sh/uv/)（根目录附带 `uv.lock`）
-- **ROS 2 运行时**: **无依赖**
+- **Python:** `>=3.10` (verified in clean Python `3.10.12` and `3.13.17` environments)
+- **Package manager:** [`uv`](https://docs.astral.sh/uv/) is recommended; `uv.lock` is included.
+- **ROS 2 runtime:** Not required.
 
-> **提示**
-> 1. 默认 Nav2 与 Autoware 话题映射已随 wheel 内置打包（`pnc_diag._configs`）：无论采用源码仓库 `uv sync` / `pip install -e .`，还是独立目录 `pip install <wheel>` 安装，不传 `--map-config` 即自动加载内置 Nav2 默认配置；传 `--map-config autoware` 可直接切换内置 Autoware 配置，或传入自定义 YAML 文件路径。
-> 2. 运行 `python -m fault_sim_kit.generator` 时，在源码仓库内默认输出至 `<repo>/data/golden/`；在独立非源码环境安装运行时默认输出至当前工作目录 `./data/golden/`，亦可通过 `--out <目录>` 指定输出位置。
-> 3. 若宿主机终端已 `source` ROS 2（如 Humble），建议前缀 `env -u PYTHONPATH` 以避免系统 Python 路径污染虚拟环境。
+> **Notes**
+> 1. The default Nav2 and Autoware topic maps are bundled in the wheel under `pnc_diag._configs`. The default Nav2 map loads without `--map-config` whether you use `uv sync`, `pip install -e .`, or install the wheel from another directory. Use `--map-config autoware` for the bundled Autoware map, or pass a path to a custom YAML map.
+> 2. In a source checkout, `python -m fault_sim_kit.generator` writes to `<repo>/data/golden/` by default. After a non-editable install, it writes to `./data/golden/` in the current working directory. Use `--out <directory>` to choose another location.
+> 3. If your shell has sourced ROS 2 (for example, Humble), prefix commands with `env -u PYTHONPATH` to keep system Python paths out of the virtual environment.
 
 ```bash
-# 1. 安装依赖
+# Install dependencies.
 env -u PYTHONPATH uv sync
 
-# 2. 检查 CLI
+# Check the CLI.
 env -u PYTHONPATH uv run pnc-diag --version
 ```
 
 ---
 
-## 可复现合成示例与测试验证
+## Synthetic examples and tests
 
-发行包不预打包约 47 MB 的 `.mcap` 二进制示例数据。可运行测试套件，或在本地生成 `data/golden/` 示例录包用于交互体验：
+The distribution does not contain the approximately 47 MB of generated `.mcap` files. Run the tests or generate the examples locally:
 
 ```bash
-# 1. 代码风格检查与全套单元测试（不依赖预先存在 data/golden/）
+# Lint and run all unit tests; pre-existing data/golden/ files are not required.
 env -u PYTHONPATH uv run ruff check .
 env -u PYTHONPATH uv run pytest
 
-# 2. 生成全部 10 个合成 MCAP 示例录包至 data/golden/
+# Generate all 10 synthetic MCAP examples under data/golden/.
 env -u PYTHONPATH uv run python -m fault_sim_kit.generator
 ```
 
 ---
 
-## CLI 使用方式
+## CLI usage
 
-本版本 `pnc-diag` 提供 `inspect` 与 `preview` 两个子命令：
+This edition provides the `inspect` and `preview` commands:
 
 ```bash
-# 1. 零反序列化时序体检、角色覆盖率与头文件时间戳中性观测
+# Inspect timing, topic-role coverage, and neutral header-time observations.
 env -u PYTHONPATH uv run pnc-diag inspect data/golden/case_01_tf_jump
 
-# 2. 缺传感器 / 零时间戳反例体检
+# Inspect missing-sensor and zero-timestamp counterexamples.
 env -u PYTHONPATH uv run pnc-diag inspect data/golden/case_08_missing_imu_and_scan
 env -u PYTHONPATH uv run pnc-diag inspect data/golden/case_09_invalid_zero_stamps --json
 
-# 3. 抽取并映射标准化物理信号样本（控制上下文长度）
+# Preview bounded samples of mapped standard signals.
 env -u PYTHONPATH uv run pnc-diag preview data/golden/nav_baseline --role odom_pose --limit 3
 env -u PYTHONPATH uv run pnc-diag preview data/golden/case_01_tf_jump --topic /amcl_pose --t-start 44.5 --t-end 46.0 --json
 
-# 4. 使用内置 Autoware 映射预设或自定义映射文件检查录制包
+# Inspect a recording with the bundled Autoware preset or a custom mapping file.
 env -u PYTHONPATH uv run pnc-diag inspect /path/to/autoware_bag --map-config autoware
 env -u PYTHONPATH uv run pnc-diag inspect /path/to/autoware_bag --map-config configs/topic_map.autoware.yaml
 ```
 
 ---
 
-## MCP Server 与 Skill 使用方式
+## MCP server and Agent Skill
 
-### `pnc-diag-mcp` stdio 工具列表
+### `pnc-diag-mcp` stdio tools
 
-| 工具名 | 参数 | 返回内容 |
+| Tool | Arguments | Returns |
 |---|---|---|
-| `ping` | 无 | 服务状态、`version`、`edition`（`open-source-thin`） |
-| `inspect_bag_summary` | `bag_path`, `map_config` | 存储格式、总时长、可用/缺失角色、`clock_comparability`、告警与各话题时序体检统计 |
-| `sample_mapped_signals` | `bag_path`, `topic`, `role`, `map_config`, `limit`, `t_start_s`, `t_end_s` | 映射后的标准化物理样本预览（`limit` 为 `1..50`） |
+| `ping` | None | Service status, `version`, and `edition` (`open-source-thin`) |
+| `inspect_bag_summary` | `bag_path`, `map_config` | Storage format, duration, available and missing roles, `clock_comparability`, warnings, and per-topic timing statistics |
+| `sample_mapped_signals` | `bag_path`, `topic`, `role`, `map_config`, `limit`, `t_start_s`, `t_end_s` | Bounded standardized signal samples (`limit`: `1..50`) |
 
-### MCP 客户端配置示例
+### Example MCP client configuration
 
 ```json
 {
@@ -123,20 +125,20 @@ env -u PYTHONPATH uv run pnc-diag inspect /path/to/autoware_bag --map-config con
 }
 ```
 
-配套 Skill 位于 [.agents/skills/pnc-slam-diag/SKILL.md](.agents/skills/pnc-slam-diag/SKILL.md) 与 [.agents/skills/pnc-slam-diag/references/fault_patterns.md](.agents/skills/pnc-slam-diag/references/fault_patterns.md)。
+The Agent Skill is in [.agents/skills/pnc-slam-diag/SKILL.md](.agents/skills/pnc-slam-diag/SKILL.md), with a [fault pattern reference](.agents/skills/pnc-slam-diag/references/fault_patterns.md).
 
 ---
 
-## 数据与诊断局限性
+## Data and diagnostic limitations
 
-1. **仅提供读取与体检基础层**：本开源版不计算定位/规划/控制量化异常指标，也不做多传感器根因定论；面对问题录包应结合人工复核或后端专业分析工具进一步确认。
-2. **禁止从 `header - log_time` 推定同步**：`observed_header_minus_log_ms` 仅反映包头时间与写盘时间的差值，无法独自区分传感器时钟漂移与录包队列/传输延迟；本版本默认将 `clock_comparability` 标记为 `"unverified"`。
-3. **合成数据仅为复现练习示例（非盲测基准）**：`fault_sim_kit` 生成的是简化运动学闭环合成数据，不代表真实传感器噪声、动力学特性或实车验收基线；仓库未预提交 `golden_truth.json` 与二进制录包，但本发行版包含 10 个合成场景定义与可离线生成 `golden_truth.json` 的代码（仓库已公开，任何人均可据此复现完整场景与真值），因此后续盲测或基准评估必须另用独立、未公开的数据集。
-4. **只读离线安全**：不执行实车控制指令、参数修改或节点操作。
+1. **Inspection foundation only:** This edition does not calculate quantitative localization, planning, or control anomaly metrics, or make a definitive multi-sensor root-cause determination. Review the evidence manually or use specialized analyzers for diagnosis.
+2. **No clock synchronization inference:** `observed_header_minus_log_ms` records the difference between a message header timestamp and its recorded log timestamp. By itself, it cannot distinguish sensor clock drift from queueing or transport delay. This edition reports `clock_comparability="unverified"` by default.
+3. **Synthetic examples are exercises, not a blind benchmark:** `fault_sim_kit` produces simplified closed-loop kinematic data, not representative sensor noise, vehicle dynamics, or real-vehicle acceptance data. The repository does not commit `golden_truth.json` or generated bag files, but it does publish the definitions of all 10 scenarios and the code that generates their ground truth. Use a separate, unpublished dataset for blind tests or benchmark evaluations.
+4. **Read-only offline operation:** The tools do not send vehicle commands, change parameters, or operate ROS nodes.
 
 ---
 
-## 许可证与第三方致谢
+## License and third-party notices
 
-- **开源许可证（`Apache-2.0`）**：本项目采用 **Apache License 2.0** 发布，详见 [LICENSE](LICENSE) 与 [NOTICE](NOTICE)。`Apache-2.0` 与核心依赖 `rosbags` 兼容，具备明确专利许可及再分发条款，允许第三方在遵守许可证条件的前提下商业使用与再分发已公开的代码本身，但不会为本公开部分保留独占性；因此差异化物理诊断内核、精确规则库与商业门禁保留在私有仓库中维护。
-- **第三方依赖与源码署名核对**：完整依赖许可证及上游借鉴/启发来源核对见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)（已核查仅采用 MIT / BSD / Apache-2.0 等宽松许可依赖与设计，未包含 GPL 代码）。
+- **License:** This repository is released under the [Apache License 2.0](LICENSE); see [NOTICE](NOTICE). Subject to the license terms, others may use, modify, and redistribute the published code commercially. The private physical diagnostic core, calibrated rules, and enterprise gates are outside this repository.
+- **Dependencies and provenance:** See [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for dependency licenses and acknowledgments of upstream code and design references. The documented runtime and development dependencies use permissive MIT, BSD, or Apache-2.0 licenses; no GPL code is included in this repository.
