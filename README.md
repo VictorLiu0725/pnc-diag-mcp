@@ -40,8 +40,9 @@
 - **ROS 2 运行时**: **无依赖**
 
 > **提示**
-> 1. 默认话题映射 `configs/topic_map.nav2.yaml` 通过源码包相对路径查找，请在仓库根目录执行 `uv sync`（editable 安装）或 `pip install -e .`；在其他路径调用时请显式传 `--map-config`。
-> 2. 若宿主机终端已 `source` ROS 2（如 Humble），建议前缀 `env -u PYTHONPATH` 以避免系统 Python 路径污染虚拟环境。
+> 1. 默认 Nav2 与 Autoware 话题映射已随 wheel 内置打包（`pnc_diag._configs`）：无论采用源码仓库 `uv sync` / `pip install -e .`，还是独立目录 `pip install <wheel>` 安装，不传 `--map-config` 即自动加载内置 Nav2 默认配置；传 `--map-config autoware` 可直接切换内置 Autoware 配置，或传入自定义 YAML 文件路径。
+> 2. 运行 `python -m fault_sim_kit.generator` 时，在源码仓库内默认输出至 `<repo>/data/golden/`；在独立非源码环境安装运行时默认输出至当前工作目录 `./data/golden/`，亦可通过 `--out <目录>` 指定输出位置。
+> 3. 若宿主机终端已 `source` ROS 2（如 Humble），建议前缀 `env -u PYTHONPATH` 以避免系统 Python 路径污染虚拟环境。
 
 ```bash
 # 1. 安装依赖
@@ -84,7 +85,8 @@ env -u PYTHONPATH uv run pnc-diag inspect data/golden/case_09_invalid_zero_stamp
 env -u PYTHONPATH uv run pnc-diag preview data/golden/nav_baseline --role odom_pose --limit 3
 env -u PYTHONPATH uv run pnc-diag preview data/golden/case_01_tf_jump --topic /amcl_pose --t-start 44.5 --t-end 46.0 --json
 
-# 4. 使用标准 Autoware 映射配置检查自定义录制包
+# 4. 使用内置 Autoware 映射预设或自定义映射文件检查录制包
+env -u PYTHONPATH uv run pnc-diag inspect /path/to/autoware_bag --map-config autoware
 env -u PYTHONPATH uv run pnc-diag inspect /path/to/autoware_bag --map-config configs/topic_map.autoware.yaml
 ```
 
@@ -129,7 +131,7 @@ env -u PYTHONPATH uv run pnc-diag inspect /path/to/autoware_bag --map-config con
 
 1. **仅提供读取与体检基础层**：本开源版不计算定位/规划/控制量化异常指标，也不做多传感器根因定论；面对问题录包应结合人工复核或后端专业分析工具进一步确认。
 2. **禁止从 `header - log_time` 推定同步**：`observed_header_minus_log_ms` 仅反映包头时间与写盘时间的差值，无法独自区分传感器时钟漂移与录包队列/传输延迟；本版本默认将 `clock_comparability` 标记为 `"unverified"`。
-3. **合成数据仅为复现练习示例（非盲测基准）**：`fault_sim_kit` 生成的是简化运动学闭环合成数据，不代表真实传感器噪声、动力学特性或实车验收基线；同时 `fault_sim_kit` 已随本开源仓库公开全部 10 个合成示例场景及 `golden_truth.json`，因此下游盲测或基准评估必须使用独立、未公开的数据集。
+3. **合成数据仅为复现练习示例（非盲测基准）**：`fault_sim_kit` 生成的是简化运动学闭环合成数据，不代表真实传感器噪声、动力学特性或实车验收基线；仓库未预提交 `golden_truth.json` 与二进制录包，但本发行版包含 10 个合成场景定义与可离线生成 `golden_truth.json` 的代码（仓库准备发布，公开推送后任何人均可据此复现完整场景与真值），因此后续盲测或基准评估必须另用独立、未公开的数据集。
 4. **只读离线安全**：不执行实车控制指令、参数修改或节点操作。
 
 ---

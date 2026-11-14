@@ -5,6 +5,7 @@ from pnc_diag.inspector import (
     BagSummaryReport,
     TopicTimingAudit,
     inspect_bag_summary,
+    resolve_builtin_topic_map_path,
     sample_mapped_signals,
 )
 from pnc_diag.readers import (
@@ -27,6 +28,7 @@ __all__ = [
     "inspect_bag_summary",
     "iter_bag_messages",
     "load_topic_map",
+    "resolve_builtin_topic_map_path",
     "sample_mapped_signals",
     "scan_bag_timing",
 ]

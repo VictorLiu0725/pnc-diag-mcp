@@ -28,7 +28,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Run zero-deserialization timing scan, role check, and header observation.",
     )
     inspect_p.add_argument("bag_path", help="Path to bag directory or .mcap/.db3/.bag file.")
-    inspect_p.add_argument("--map-config", default=None, help="Path to custom topic_map YAML.")
+    inspect_p.add_argument(
+        "--map-config",
+        default=None,
+        help="Path to custom topic_map YAML or built-in preset ('nav2' / 'autoware').",
+    )
     inspect_p.add_argument("--json", action="store_true", help="Emit structured JSON output.")
 
     preview_p = subparsers.add_parser(
@@ -41,7 +45,11 @@ def build_parser() -> argparse.ArgumentParser:
     preview_p.add_argument("--limit", type=int, default=5, help="Max samples per role (1..50).")
     preview_p.add_argument("--t-start", type=float, default=None, help="Window start (rel s).")
     preview_p.add_argument("--t-end", type=float, default=None, help="Window end (rel s).")
-    preview_p.add_argument("--map-config", default=None, help="Path to custom topic_map YAML.")
+    preview_p.add_argument(
+        "--map-config",
+        default=None,
+        help="Path to custom topic_map YAML or built-in preset ('nav2' / 'autoware').",
+    )
     preview_p.add_argument("--json", action="store_true", help="Emit structured JSON output.")
     return parser
 

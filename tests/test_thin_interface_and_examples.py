@@ -12,7 +12,13 @@ import pytest
 import yaml
 
 from fault_sim_kit import FaultScenarioConfig, generate_golden_dataset
-from pnc_diag import inspect_bag_summary, mcp_server, sample_mapped_signals
+from pnc_diag import (
+    DEFAULT_TOPIC_MAP_PATH,
+    inspect_bag_summary,
+    mcp_server,
+    resolve_builtin_topic_map_path,
+    sample_mapped_signals,
+)
 from pnc_diag.cli import main as cli_main
 from pnc_diag.readers.discovery import BagDiscoveryError
 
@@ -148,3 +154,20 @@ def test_sample_mapped_signals_and_thin_cli_and_mcp(sample_bags: Path, capsys) -
     with pytest.raises(BagDiscoveryError):
         inspect_bag_summary(sample_bags / "does_not_exist")
     assert isinstance(FaultScenarioConfig.__name__, str)
+
+
+def test_builtin_topic_map_presets_and_missing_path_errors(sample_bags: Path, tmp_path: Path) -> None:
+    assert DEFAULT_TOPIC_MAP_PATH.is_file()
+    assert resolve_builtin_topic_map_path("nav2").is_file()
+    assert resolve_builtin_topic_map_path("autoware").is_file()
+
+    bag = sample_bags / "nav_baseline"
+    auto = inspect_bag_summary(bag, map_config="autoware")
+    assert {"ndt_pose", "chassis_feedback", "localization_pose"} <= set(auto.missing_roles)
+    assert "tf" in auto.available_roles
+
+    with pytest.raises(FileNotFoundError):
+        inspect_bag_summary(bag, map_config=tmp_path / "does_not_exist.yaml")
+
+    with pytest.raises(FileNotFoundError):
+        resolve_builtin_topic_map_path("unknown_preset")

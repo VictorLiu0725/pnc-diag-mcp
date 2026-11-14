@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import asdict, dataclass
+from importlib import resources
 from pathlib import Path
 from statistics import median
 from typing import Any
@@ -19,7 +20,36 @@ from pnc_diag.readers import (
     scan_bag_timing,
 )
 
-DEFAULT_TOPIC_MAP_PATH = Path(__file__).resolve().parents[2] / "configs" / "topic_map.nav2.yaml"
+_BUILTIN_TOPIC_MAP_FILES = {
+    "nav2": "topic_map.nav2.yaml",
+    "nav2_default": "topic_map.nav2.yaml",
+    "autoware": "topic_map.autoware.yaml",
+    "autoware_default": "topic_map.autoware.yaml",
+}
+
+
+def resolve_builtin_topic_map_path(preset: str = "nav2") -> Path:
+    """Resolve a built-in topic_map YAML path across repo checkouts and wheel installs."""
+    filename = _BUILTIN_TOPIC_MAP_FILES.get(preset)
+    if filename is None:
+        raise FileNotFoundError(f"Unknown built-in topic_map preset: {preset!r}")
+
+    repo_candidate = Path(__file__).resolve().parents[2] / "configs" / filename
+    if repo_candidate.is_file():
+        return repo_candidate
+
+    bundled_candidate = Path(__file__).resolve().parent / "_configs" / filename
+    if bundled_candidate.is_file():
+        return bundled_candidate
+
+    res = resources.files("pnc_diag").joinpath("_configs", filename)
+    if res.is_file():
+        return Path(str(res))
+
+    raise FileNotFoundError(f"Bundled topic_map config not found: {filename}")
+
+
+DEFAULT_TOPIC_MAP_PATH = resolve_builtin_topic_map_path("nav2")
 
 
 @dataclass(frozen=True, slots=True)
@@ -76,8 +106,15 @@ class BagSummaryReport:
 def _resolve_topic_map(map_config: TopicMapConfig | str | Path | None) -> TopicMapConfig:
     if isinstance(map_config, TopicMapConfig):
         return map_config
-    resolved = Path(map_config) if map_config is not None else DEFAULT_TOPIC_MAP_PATH
-    return load_topic_map(resolved)
+    if map_config is None:
+        return load_topic_map(resolve_builtin_topic_map_path("nav2"))
+    if (
+        isinstance(map_config, str)
+        and map_config in _BUILTIN_TOPIC_MAP_FILES
+        and not Path(map_config).exists()
+    ):
+        return load_topic_map(resolve_builtin_topic_map_path(map_config))
+    return load_topic_map(Path(map_config))
 
 
 def _sample_header_stats(

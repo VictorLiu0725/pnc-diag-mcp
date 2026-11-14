@@ -21,7 +21,7 @@ Use the `pnc-diag` stdio MCP server as the read-only bag interface for `.mcap`, 
 ## Workflow
 
 ### 1. Confirm Inputs & Stack Mapping
-- Collect `bag_path` (`.mcap`, `.db3`, `.sqlite3`, `.bag`, or ROS 2 bag directory) and optional `map_config` (defaults to Nav2 `configs/topic_map.nav2.yaml`; use `configs/topic_map.autoware.yaml` for standard Autoware Universe topics).
+- Collect `bag_path` (`.mcap`, `.db3`, `.sqlite3`, `.bag`, or ROS 2 bag directory) and optional `map_config` (defaults to bundled Nav2 preset `"nav2"` / `configs/topic_map.nav2.yaml`; pass `"autoware"` or a custom YAML path for Autoware / custom stacks).
 
 ### 2. Verify Server & Inspect Bag Summary (`ping` + `inspect_bag_summary`)
 - Call `ping()` and confirm `status == "ready"` (note `edition == "open-source-thin"`).

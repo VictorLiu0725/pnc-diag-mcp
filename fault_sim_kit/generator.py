@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import json
 import math
 import shutil
@@ -923,8 +924,21 @@ def generate_golden_dataset(
     return truth_path
 
 
-def main() -> None:
-    default_out = Path(__file__).resolve().parents[1] / "data" / "golden"
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser(description="Generate synthetic Golden MCAP bags.")
+    parser.add_argument(
+        "--out",
+        default=None,
+        help="Output directory (defaults to <repo>/data/golden or ./data/golden).",
+    )
+    args = parser.parse_args(argv)
+    repo_root = Path(__file__).resolve().parents[1]
+    if args.out is not None:
+        default_out = Path(args.out)
+    elif (repo_root / "pyproject.toml").is_file():
+        default_out = repo_root / "data" / "golden"
+    else:
+        default_out = Path.cwd() / "data" / "golden"
     truth = generate_golden_dataset(default_out)
     print(f"Generated golden dataset manifest at: {truth}")
 
