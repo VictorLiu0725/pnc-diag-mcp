@@ -1,0 +1,102 @@
+version: 1
+name: nav2_default
+coordinate_convention: FLU
+angle_unit: rad
+
+signals:
+  odom_pose:
+    topic: /odom
+    signal_type: pose
+    fields:
+      frame_id: header.frame_id
+      child_frame_id: child_frame_id
+      x: pose.pose.position.x
+      y: pose.pose.position.y
+      z: pose.pose.position.z
+      qx: pose.pose.orientation.x
+      qy: pose.pose.orientation.y
+      qz: pose.pose.orientation.z
+      qw: pose.pose.orientation.w
+      vx: twist.twist.linear.x
+      vy: twist.twist.linear.y
+      wz: twist.twist.angular.z
+      cov_xx: pose.covariance[0]
+      cov_yy: pose.covariance[7]
+      cov_yaw: pose.covariance[35]
+
+  localization_pose:
+    topic: /amcl_pose
+    signal_type: pose
+    fields:
+      frame_id: header.frame_id
+      x: pose.pose.position.x
+      y: pose.pose.position.y
+      z: pose.pose.position.z
+      qx: pose.pose.orientation.x
+      qy: pose.pose.orientation.y
+      qz: pose.pose.orientation.z
+      qw: pose.pose.orientation.w
+      cov_xx: pose.covariance[0]
+      cov_yy: pose.covariance[7]
+      cov_yaw: pose.covariance[35]
+
+  tf:
+    topic: /tf
+    signal_type: tf
+    fields:
+      transforms: transforms
+
+  local_plan:
+    topic: /plan
+    signal_type: path
+    fields:
+      frame_id: header.frame_id
+      points: poses
+      point_x: pose.position.x
+      point_y: pose.position.y
+      point_z: pose.position.z
+      point_qx: pose.orientation.x
+      point_qy: pose.orientation.y
+      point_qz: pose.orientation.z
+      point_qw: pose.orientation.w
+
+  control_cmd:
+    topic: /cmd_vel
+    signal_type: control_cmd
+    fields:
+      linear_vel: linear.x
+      angular_vel: angular.z
+
+  imu:
+    topic: /imu/data
+    signal_type: imu
+    fields:
+      wx: angular_velocity.x
+      wy: angular_velocity.y
+      wz: angular_velocity.z
+      ax: linear_acceleration.x
+      ay: linear_acceleration.y
+      az: linear_acceleration.z
+
+  laser_scan:
+    topic: /scan
+    signal_type: laser_scan
+    fields:
+      frame_id: header.frame_id
+      ranges: ranges
+      range_min: range_min
+      range_max: range_max
+      angle_min: angle_min
+      angle_increment: angle_increment
+
+  diagnostics:
+    topic: /diagnostics
+    signal_type: diagnostics
+
+  solver_status:
+    topic: /planning/solver_status
+    signal_type: diagnostics
+    fields:
+      metric_name: processing_time_ms
+      metric_value: data
+

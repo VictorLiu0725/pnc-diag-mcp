@@ -1,0 +1,112 @@
+version: 1
+name: autoware_universe_default
+coordinate_convention: FLU
+angle_unit: rad
+
+signals:
+  localization_pose:
+    topic: /localization/kinematic_state
+    signal_type: pose
+    fields:
+      frame_id: header.frame_id
+      child_frame_id: child_frame_id
+      x: pose.pose.position.x
+      y: pose.pose.position.y
+      z: pose.pose.position.z
+      qx: pose.pose.orientation.x
+      qy: pose.pose.orientation.y
+      qz: pose.pose.orientation.z
+      qw: pose.pose.orientation.w
+      vx: twist.twist.linear.x
+      vy: twist.twist.linear.y
+      wz: twist.twist.angular.z
+      cov_xx: pose.covariance[0]
+      cov_yy: pose.covariance[7]
+      cov_yaw: pose.covariance[35]
+
+  ndt_pose:
+    topic: /localization/pose_estimator/pose_with_covariance
+    signal_type: pose
+    fields:
+      frame_id: header.frame_id
+      x: pose.pose.position.x
+      y: pose.pose.position.y
+      z: pose.pose.position.z
+      qx: pose.pose.orientation.x
+      qy: pose.pose.orientation.y
+      qz: pose.pose.orientation.z
+      qw: pose.pose.orientation.w
+      cov_xx: pose.covariance[0]
+      cov_yy: pose.covariance[7]
+      cov_yaw: pose.covariance[35]
+
+  tf:
+    topic: /tf
+    signal_type: tf
+    fields:
+      transforms: transforms
+
+  local_plan:
+    topic: /planning/scenario_planning/trajectory
+    signal_type: path
+    fields:
+      frame_id: header.frame_id
+      points: points
+      point_x: pose.position.x
+      point_y: pose.position.y
+      point_z: pose.position.z
+      point_qx: pose.orientation.x
+      point_qy: pose.orientation.y
+      point_qz: pose.orientation.z
+      point_qw: pose.orientation.w
+      point_v: longitudinal_velocity_mps
+
+  control_cmd:
+    topic: /control/command/control_cmd
+    signal_type: control_cmd
+    fields:
+      linear_vel: longitudinal.velocity
+      acceleration: longitudinal.acceleration
+      steering_angle: lateral.steering_tire_angle
+
+  chassis_feedback:
+    topic: /vehicle/status/velocity_status
+    signal_type: twist
+    fields:
+      vx: longitudinal_velocity
+      vy: lateral_velocity
+      wz: heading_rate
+
+  imu:
+    topic: /sensing/imu/tamagawa/imu_raw
+    signal_type: imu
+    fields:
+      wx: angular_velocity.x
+      wy: angular_velocity.y
+      wz: angular_velocity.z
+      ax: linear_acceleration.x
+      ay: linear_acceleration.y
+      az: linear_acceleration.z
+
+  laser_scan:
+    topic: /sensing/lidar/scan
+    signal_type: laser_scan
+    fields:
+      frame_id: header.frame_id
+      ranges: ranges
+      range_min: range_min
+      range_max: range_max
+      angle_min: angle_min
+      angle_increment: angle_increment
+
+  diagnostics:
+    topic: /diagnostics
+    signal_type: diagnostics
+
+  solver_status:
+    topic: /planning/scenario_planning/lane_driving/motion_planning/obstacle_avoidance_planner/debug/processing_time_ms
+    signal_type: diagnostics
+    fields:
+      metric_name: processing_time_ms
+      metric_value: data
+
