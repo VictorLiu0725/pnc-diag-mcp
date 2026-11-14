@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Usage questions and feedback
+    url: https://github.com/VictorLiu0725/pnc-diag-mcp/discussions
+    about: Ask usage questions and discuss workflows or feature ideas here.

@@ -71,6 +71,17 @@ env -u PYTHONPATH uv run python -m fault_sim_kit.generator
 
 ---
 
+## Try it and share feedback
+
+Start with the generated synthetic examples, then try `pnc-diag inspect <bag_path>` or `pnc-diag preview <bag_path>` on a recording you are authorized to analyze. This edition provides inspection and signal sampling, not a definitive root-cause diagnosis.
+
+- **Reproducible bugs:** Open a [Bug report](https://github.com/VictorLiu0725/pnc-diag-mcp/issues/new?template=bug_report.md). Include your Python version, operating system, install method, recording format, command, expected and actual behavior, and sanitized output.
+- **Usage questions, workflow feedback, and feature ideas:** Start a [Discussion](https://github.com/VictorLiu0725/pnc-diag-mcp/discussions).
+
+Do not upload raw customer recordings, proprietary bags, credentials, or identifying logs to public Issues or Discussions. Share a synthetic or anonymized minimal reproduction when possible.
+
+---
+
 ## CLI usage
 
 This edition provides the `inspect` and `preview` commands:
