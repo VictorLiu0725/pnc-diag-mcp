@@ -24,14 +24,32 @@ This edition provides standardized recording access, timing checks, and reproduc
 4. **Reproducible synthetic examples** (`fault_sim_kit/`)
    - Generates one baseline recording and nine synthetic fault, missing-data, or zero-timestamp examples under `data/golden/` for integration and regression exercises.
 
-### Outside this edition's scope
+### Open-Source Thin vs. PNC-Diag MCP Pro
 
-The following components remain in the private diagnostic core:
+| Capability | Open-Source Thin (Apache-2.0, Free) | [PNC-Diag MCP Pro (\$79 one-time)](https://gumroadalbert.gumroad.com/l/pnc-diag-pro) |
+|---|---|---|
+| Multi-format offline reader (`.mcap`, `.db3`/`.sqlite3`, `.bag`) | ✅ | ✅ (+ schema v1–v4+ SQLite3 recovery without `metadata.yaml`) |
+| Zero-deserialization timing scan & header-time audit | ✅ (`inspect_bag_summary`) | ✅ (`inspect_bag_schema` + calibrated clock checks) |
+| Bounded signal mapping (`nav2` / `autoware` / custom YAML) | ✅ (`sample_mapped_signals`) | ✅ |
+| Full-bag Top-K streaming anomaly anchoring | — | ✅ (`detect_anomaly_windows`) |
+| Localization jump vs. wheel-odometry slip arbitration (IMU) | — | ✅ (`analyze_localization_health`) |
+| Planning trajectory jumps, curvature & solver timeout checks | — | ✅ (`analyze_planning_health`) |
+| Control CTE/HE, cross-correlation actuation lag & FFT oscillation | — | ✅ (`analyze_control_health`) |
+| Cross-module First-Domino causal adjudication + 5-panel PNG plot | — | ✅ (`correlate_root_cause_and_plot`) |
+| CI regression KPI gates (`--assert-healthy`, `--assert-kpi`) | — | ✅ (`pnc-diag-pro diagnose`) |
+| Offline field operation (no ROS 2 runtime, no cloud upload) | ✅ | ✅ (up to 3 machines, 7-day offline field grace) |
 
-- Automated physical diagnostic operators for localization jumps versus odometry slip, planning path jumps / curvature / solver checks, and control cross-correlation delay and FFT oscillation analysis.
-- The First-Domino cross-module causal arbitration engine and five-panel diagnostic PNG plotter.
-- Calibrated detection rules and enterprise CI KPI gates such as `--assert-kpi`.
-- Customer-specific `.msg` / `.proto` adapters.
+**Seamless upgrade:** `pnc-diag-mcp` automatically discovers `pnc-diag-pro` when installed in the same Python environment—no MCP client reconfiguration required:
+
+```bash
+# 1. Install the compiled Pro wheel (Linux x86_64, Python 3.10–3.13) from Gumroad
+uv pip install ./pnc_diag_pro-0.1.0-cp313-cp313-linux_x86_64.whl
+
+# 2. Activate once online (writes a 7-day offline cache for air-gapped field testing)
+pnc-diag-pro activate <YOUR-GUMROAD-LICENSE-KEY>
+```
+
+👉 **Get PNC-Diag MCP Pro:** https://gumroadalbert.gumroad.com/l/pnc-diag-pro
 
 ---
 
