@@ -1,0 +1,16 @@
+# Smithery configuration file: https://smithery.ai/docs/config#smitheryyaml
+startCommand:
+  type: stdio
+  configSchema:
+    type: object
+    required: []
+    properties: {}
+  commandFunction: |-
+    () => ({
+      command: "uvx",
+      args: ["pnc-diag-mcp"],
+      env: {
+        PYTHONUNBUFFERED: "1"
+      }
+    })
+  exampleConfig: {}

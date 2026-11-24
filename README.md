@@ -26,7 +26,7 @@ This edition provides standardized recording access, timing checks, and reproduc
 
 ### Open-Source Thin vs. PNC-Diag MCP Pro
 
-| Capability | Open-Source Thin (Apache-2.0, Free) | [PNC-Diag MCP Pro (\$79 one-time)](https://gumroadalbert.gumroad.com/l/pnc-diag-pro) |
+| Capability | Open-Source Thin (Apache-2.0, Free) | [PNC-Diag MCP Pro ($79 one-time)](https://gumroadalbert.gumroad.com/l/pnc-diag-pro) |
 |---|---|---|
 | Multi-format offline reader (`.mcap`, `.db3`/`.sqlite3`, `.bag`) | ✅ | ✅ (+ schema v1–v4+ SQLite3 recovery without `metadata.yaml`) |
 | Zero-deserialization timing scan & header-time audit | ✅ (`inspect_bag_summary`) | ✅ (`inspect_bag_schema` + calibrated clock checks) |
@@ -65,10 +65,15 @@ pnc-diag-pro activate <YOUR-GUMROAD-LICENSE-KEY>
 > 3. If your shell has sourced ROS 2 (for example, Humble), prefix commands with `env -u PYTHONPATH` to keep system Python paths out of the virtual environment.
 
 ```bash
-# Install dependencies.
-env -u PYTHONPATH uv sync
+# Option 1: Install from PyPI (recommended)
+env -u PYTHONPATH pip install pnc-diag-mcp
+pnc-diag --version
 
-# Check the CLI.
+# Or run the stdio MCP server directly with uvx (no repo clone required)
+env -u PYTHONPATH uvx pnc-diag-mcp
+
+# Option 2: Run from a local source checkout
+env -u PYTHONPATH uv sync
 env -u PYTHONPATH uv run pnc-diag --version
 ```
 
@@ -134,6 +139,26 @@ env -u PYTHONPATH uv run pnc-diag inspect /path/to/autoware_bag --map-config con
 | `sample_mapped_signals` | `bag_path`, `topic`, `role`, `map_config`, `limit`, `t_start_s`, `t_end_s` | Bounded standardized signal samples (`limit`: `1..50`) |
 
 ### Example MCP client configuration
+
+Using `uvx` (from PyPI):
+
+```json
+{
+  "mcpServers": {
+    "pnc-diag": {
+      "command": "env",
+      "args": [
+        "-u",
+        "PYTHONPATH",
+        "uvx",
+        "pnc-diag-mcp"
+      ]
+    }
+  }
+}
+```
+
+Or from a local source checkout:
 
 ```json
 {
