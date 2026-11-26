@@ -1,5 +1,9 @@
 # pnc-diag-mcp (Open-Source Thin Edition)
 
+[![PyPI version](https://img.shields.io/pypi/v/pnc-diag-mcp)](https://pypi.org/project/pnc-diag-mcp/)
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![pnc-diag-mcp MCP server](https://glama.ai/mcp/servers/VictorLiu0725/pnc-diag-mcp/badges/score.svg)](https://glama.ai/mcp/servers/VictorLiu0725/pnc-diag-mcp)
+
 A read-only, open-source foundation for inspecting offline **Planning and Control (PNC)** and **LiDAR-SLAM** recordings. It provides a multi-format bag reader, a timing health check that does not deserialize message payloads, and an Agent Skill interface. It supports `.mcap`, `.db3` / `.sqlite3`, and ROS 1 `.bag` files **without a local ROS 2 installation**.
 
 ---
